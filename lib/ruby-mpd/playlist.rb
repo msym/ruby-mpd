@@ -25,6 +25,12 @@ class MPD
     # @return [Array<MPD::Song>] songs in the playlist.
     def songs
       result = @mpd.send_command(:listplaylistinfo, @name)
+      # very very dirty hack
+      # if in playlist only one stream for example http://like.ru mpd return array ["http:test.ru"] 
+      if  result.size==1 && result[0].class != Hash
+        result[0] = {:file => result[0]}
+      end
+
       result.map do |hash|
         if hash[:file] && !hash[:file].match(/^(https?:\/\/)?/)[0].empty?
           Song.new(@mpd, {:file => hash[:file], :time => [0]})
